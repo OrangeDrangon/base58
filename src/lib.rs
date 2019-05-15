@@ -1,5 +1,6 @@
 extern crate num;
 
+use std::i128;
 use num::{bigint::{BigUint, ToBigUint}, traits::Pow};
 
 // Valid chars for use in base58 encode
@@ -29,7 +30,7 @@ const BYTE_MAP: [i8; 256] = [
 ///
 /// # Arguments
 ///
-/// * `input` - hex string to be encoded
+/// * `input` - hex string to be encoded - first two chars treated as the prefix byte code
 ///
 /// # Example
 /// ```
@@ -37,8 +38,9 @@ const BYTE_MAP: [i8; 256] = [
 /// // |-> "PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs"
 /// ```
 pub fn encode(input: &str) -> String {
+    let prefix = i128::from_str_radix(&input[..2], 16).unwrap() as usize;
     let mut number =
-        BigUint::parse_bytes(input.as_bytes(), 16).expect("Input not valid hex string");
+        BigUint::parse_bytes(&input[2..].as_bytes(), 16).expect("Input not valid hex string");
 
     let mut output = String::new();
 
@@ -53,6 +55,8 @@ pub fn encode(input: &str) -> String {
 
         output += &CHARS[bit..bit + 1];
     }
+
+    output += &CHARS[prefix..prefix + 1];
 
     let reversed: String = output.chars().rev().collect();
 
