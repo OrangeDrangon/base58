@@ -31,16 +31,19 @@ const BYTE_MAP: [i8; 256] = [
 /// # Arguments
 ///
 /// * `input` - hex string to be encoded - first two chars treated as the prefix byte code
+/// * `prefix` - the two char value to be prefixed onto the address
 ///
 /// # Example
 /// ```
-/// encode("f54a5851e9372b87810a8e60cdd2e7cfd80b6e31c7f18fe8");
-/// // |-> "PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs"
+/// use base58::encode;
+/// 
+/// encode("f54a5851e9372b87810a8e60cdd2e7cfd80b6e31c7f18fe8", "00");
+/// // |-> "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs"
 /// ```
-pub fn encode(input: &str) -> String {
-    let prefix = i128::from_str_radix(&input[..2], 16).unwrap() as usize;
+pub fn encode(input: &str, prefix: &str) -> String {
+    let prefix_code = i128::from_str_radix(&prefix[..2], 10).unwrap() as usize;
     let mut number =
-        BigUint::parse_bytes(&input[2..].as_bytes(), 16).expect("Input not valid hex string");
+        BigUint::parse_bytes(input.as_bytes(), 16).expect("Input not valid hex string");
 
     let mut output = String::new();
 
@@ -56,11 +59,9 @@ pub fn encode(input: &str) -> String {
         output += &CHARS[bit..bit + 1];
     }
 
-    output += &CHARS[prefix..prefix + 1];
-
     let reversed: String = output.chars().rev().collect();
 
-    reversed
+    String::from(&CHARS[prefix_code..prefix_code + 1]) + &reversed
 }
 
 /// Takes any base58 string and returns decoded hex string
@@ -71,6 +72,8 @@ pub fn encode(input: &str) -> String {
 ///
 /// # Example
 /// ```
+/// use base58::decode;
+///
 /// decode("PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs");
 /// // |-> "f54a5851e9372b87810a8e60cdd2e7cfd80b6e31c7f18fe8"
 /// ```
@@ -89,7 +92,7 @@ pub fn decode(input: &str) -> String {
 mod tests {
     #[test]
     fn encode_test() {
-        assert_eq!(super::encode("f54a5851e9372b87810a8e60cdd2e7cfd80b6e31c7f18fe8"), "PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs");
+        assert_eq!(super::encode("f54a5851e9372b87810a8e60cdd2e7cfd80b6e31c7f18fe8", "00"), "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs");
     }
 
     #[test]
